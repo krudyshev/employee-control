@@ -1,4 +1,4 @@
-import { employees, typeMeta } from "./data.js?v=2";
+import { employees, typeMeta } from "./data.js?v=3";
 
 export const Badge = (text, tone = "neutral") => `<span class="badge badge--${tone}">${text}</span>`;
 export const Button = (text, variant = "secondary", attrs = "") => `<button class="button button--${variant}" ${attrs}>${text}</button>`;
@@ -19,10 +19,13 @@ export function Sidebar() {
 }
 
 export function Metrics() {
-  return `<section class="metrics">
-    <article class="metric"><span class="metric__icon brand">4</span><div><span>Сотрудников с доступом</span><strong>4</strong><small>Все доступы активны</small></div></article>
-    <article class="metric"><span class="metric__icon success">✓</span><div><span>Активны сегодня</span><strong>2</strong><small>Последнее действие 17:25</small></div></article>
-    <button class="metric metric--action" id="show-security-events"><span class="metric__icon warning">!</span><div><span>Требуют внимания</span><strong>2</strong><small>Показать события Дмитрия →</small></div></button>
+  const employeesWithRisks = employees.filter(employee => employee.risks > 0);
+  const totalRisks = employeesWithRisks.reduce((total, employee) => total + employee.risks, 0);
+  if (!totalRisks) return "";
+  return `<section class="risk-overview">
+    <span class="risk-overview__icon">!</span>
+    <div class="risk-overview__body"><div><span>Подозрительные операции</span><strong>${totalRisks}</strong></div><p>Проверьте отклонения и при необходимости ограничьте доступ сотрудника.</p></div>
+    <div class="risk-overview__people">${employeesWithRisks.map(employee => `<button data-risk-employee="${employee.id}"><span class="avatar">${employee.initials}</span><span><strong>${employee.name}</strong><small>${employee.risks} ${employee.risks === 1 ? "операция" : "операции"}</small></span><b>›</b></button>`).join("")}</div>
   </section>`;
 }
 
@@ -63,10 +66,11 @@ export function EmployeeSummary(employee, visibleEvents, period) {
 export function FiltersPanel(state) {
   const types = ["Все типы", "Просмотры", "Документы", "Платежи", "Экспорт", "Входы", "Настройки"];
   const activeCount = Number(state.type !== "Все типы") + Number(state.onlyRisks) + Number(state.period !== "Сегодня") + Number(Boolean(state.eventQuery));
+  const employeeRisks = employees.find(employee => employee.id === state.employeeId)?.risks || 0;
   return `<section class="filters-shell">
     <div class="filters-mobile-head"><button class="filter-toggle" id="filter-toggle">Фильтры ${activeCount ? `<b>${activeCount}</b>` : ""}<span>${state.filtersOpen ? "⌃" : "⌄"}</span></button></div>
     <div class="filters ${state.filtersOpen ? "is-open" : ""}">
-      <label class="risk-filter ${state.onlyRisks ? "is-active" : ""}"><input type="checkbox" id="risk-filter" ${state.onlyRisks ? "checked" : ""}><span class="risk-filter__icon">!</span><span><b>Подозрительные действия</b><small>Быстрый фильтр</small></span><i>${state.onlyRisks ? "✓" : "2"}</i></label>
+      <label class="risk-filter ${state.onlyRisks ? "is-active" : ""}"><input type="checkbox" id="risk-filter" ${state.onlyRisks ? "checked" : ""}><span class="risk-filter__icon">!</span><span><b>Подозрительные действия</b><small>Быстрый фильтр</small></span><i>${state.onlyRisks ? "✓" : employeeRisks}</i></label>
       <div class="periods">${["Сегодня", "Вчера", "Неделя", "Месяц"].map(period => `<button class="${state.period === period ? "is-active" : ""}" data-period="${period}">${period}</button>`).join("")}</div>
       <label class="select-wrap"><span>Тип события</span><select id="type-filter">${types.map(type => `<option ${state.type === type ? "selected" : ""}>${type}</option>`).join("")}</select></label>
       <label class="search-field search-field--events"><span>⌕</span><input id="event-search" value="${state.eventQuery}" placeholder="Поиск по действиям"></label>

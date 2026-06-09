@@ -1,5 +1,5 @@
 export const employees = [
-  { id: "anna", initials: "АП", name: "Анна Петрова", role: "Бухгалтер", sign: false, rights: ["Платежи", "Выписки", "Контрагенты"], limit: "до 100 000 ₽", last: "сегодня, 17:25", actions: 12, risks: 0 },
+  { id: "anna", initials: "АП", name: "Анна Петрова", role: "Бухгалтер", sign: false, rights: ["Платежи", "Выписки", "Контрагенты"], limit: "до 100 000 ₽", last: "сегодня, 18:42", actions: 13, risks: 1 },
   { id: "dmitry", initials: "ДК", name: "Дмитрий Козлов", role: "Финансовый директор", sign: true, rights: ["Платежи", "Аналитика", "Документы", "Выписки"], limit: "без лимита", last: "вчера, 22:14", actions: 8, risks: 2 },
   { id: "elena", initials: "ЕС", name: "Елена Сидорова", role: "Помощник", sign: false, rights: ["Выписки", "Контрагенты"], limit: "нет", last: "3 июня, 11:32", actions: 4, risks: 0 },
   { id: "alexey", initials: "АН", name: "Алексей Новиков", role: "Бухгалтер", sign: false, rights: ["Документы", "Выписки"], limit: "до 50 000 ₽", last: "сегодня, 15:08", actions: 9, risks: 0 }
@@ -21,14 +21,14 @@ const common = [
 const risks = [
   ["Вход с нового устройства", "Chrome, Windows · Москва", "Входы", "22:14", "Требует внимания", "Новое устройство и необычное время активности"],
   ["Экспорт выписки вне обычного времени", "PDF · 5 счетов", "Экспорт", "23:48", "Требует внимания", "Действие выполнено вне обычного времени активности"],
-  ["Попытка создать платеж выше лимита", "250 000 ₽ · лимит 100 000 ₽", "Платежи", "18:42", "Отклонено", "Превышение установленного лимита"]
+  ["Операция отклонена: превышен лимит", "Платёж 250 000 ₽ · доступный лимит 100 000 ₽", "Платежи", "18:42", "Отклонено", "Сумма операции превышает установленный лимит на 150 000 ₽"]
 ];
 
 const devices = ["Chrome · Windows 11", "Safari · macOS", "Chrome · Windows 11", "Edge · Windows 10"];
 export const events = employees.flatMap((employee, employeeIndex) => {
   const rows = [...common.slice(employeeIndex, 10), ...common.slice(0, employeeIndex)];
   if (employee.id === "dmitry") rows.splice(1, 0, ...risks.slice(0, 2));
-  if (employee.id === "anna") rows.push(risks[2]);
+  if (employee.id === "anna") rows.splice(1, 0, risks[2]);
   return rows.map((row, index) => ({
     id: `${employee.id}-${index}`,
     employeeId: employee.id,

@@ -1,5 +1,5 @@
-import { employees, events } from "./data.js?v=2";
-import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js?v=2";
+import { employees, events } from "./data.js?v=3";
+import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js?v=3";
 
 const app = document.querySelector("#app");
 const state = { employeeId: "anna", tab: "feed", period: "Сегодня", type: "Все типы", onlyRisks: false, eventQuery: "", employeeQuery: "", filtersOpen: false, drawerId: null, confirmRestrict: false, toast: "" };
@@ -23,7 +23,7 @@ function render(options = {}) {
   app.innerHTML = `<div class="layout">${Sidebar()}<button class="sidebar-backdrop" id="sidebar-backdrop" aria-label="Закрыть меню"></button><main>
     <button class="mobile-menu" id="mobile-menu">☰</button>
     <div class="content">
-      <section class="hero"><div><div class="eyebrow">Контроль доступов</div><h1>Действия сотрудников</h1><p>Смотрите историю действий распорядителей, проверяйте необычную активность и управляйте доступами.</p></div></section>
+      <section class="hero"><h1>Действия сотрудников</h1></section>
       ${Metrics()}${EmployeesList(state.employeeId, state.employeeQuery)}${EmployeeSummary(employee, visibleEvents, state.period)}
       <section class="history-section" id="history"><div class="history-head"><div><h2>История действий</h2><p>${employee.name} · ${visibleEvents.length} событий · ${state.period.toLowerCase()}</p></div>${Button("Скачать журнал", "secondary", 'id="download-log"')}</div>
         <div class="tabs"><button class="${state.tab === "feed" ? "is-active" : ""}" data-tab="feed">Лента действий</button><button class="${state.tab === "time" ? "is-active" : ""}" data-tab="time">Активность по времени</button></div>
@@ -59,7 +59,7 @@ function bind() {
   document.querySelector("#type-filter")?.addEventListener("change", event => { state.type = event.target.value; render(); });
   document.querySelector("#risk-filter")?.addEventListener("change", event => { state.onlyRisks = event.target.checked; render(); });
   document.querySelector("#filter-toggle")?.addEventListener("click", () => { state.filtersOpen = !state.filtersOpen; render(); });
-  document.querySelector("#show-security-events")?.addEventListener("click", () => { state.employeeId = "dmitry"; state.onlyRisks = true; state.period = "Неделя"; state.filtersOpen = true; render({ scrollSelected: true }); document.querySelector("#history")?.scrollIntoView({ behavior: "smooth" }); });
+  document.querySelectorAll("[data-risk-employee]").forEach(button => button.addEventListener("click", () => { state.employeeId = button.dataset.riskEmployee; state.onlyRisks = true; state.period = "Неделя"; state.filtersOpen = true; render({ scrollSelected: true }); document.querySelector("#history")?.scrollIntoView({ behavior: "smooth" }); }));
   document.querySelector("#reset-filters")?.addEventListener("click", resetFilters);
   document.querySelector("#empty-reset")?.addEventListener("click", resetFilters);
   document.querySelector("#drawer-close")?.addEventListener("click", () => { state.drawerId = null; render(); });
