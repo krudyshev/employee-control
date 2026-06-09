@@ -31,17 +31,23 @@ export function EmployeesList(selectedId, query = "") {
   const visible = employees.filter(employee => `${employee.name} ${employee.role}`.toLowerCase().includes(normalized));
   return `<section class="section employees-section">
     <div class="section-head employee-list-head"><div><h2>Сотрудники</h2><p>Выберите сотрудника, чтобы посмотреть историю</p></div>
-      <div class="employee-tools"><label class="search-field search-field--employees"><span>⌕</span><input id="employee-search" value="${query}" placeholder="Найти сотрудника"></label><span class="counter">${visible.length} с доступом</span><button class="mini-button" data-scroll-employees="-1" aria-label="Назад">‹</button><button class="mini-button" data-scroll-employees="1" aria-label="Вперёд">›</button></div>
+      <div class="employee-tools"><label class="search-field search-field--employees"><span>⌕</span><input id="employee-search" value="${query}" placeholder="Найти сотрудника"></label><span class="counter">${visible.length} с доступом</span></div>
     </div>
-    <div class="employees">${visible.length ? visible.map(employee => EmployeeCard(employee, selectedId)).join("") : `<div class="employees-empty">Сотрудники не найдены</div>`}</div>
+    <div class="employee-table">
+      <div class="employee-table__head"><span>Сотрудник</span><span>Доступ</span><span>Последняя активность</span><span>Действия</span><span>Риски</span><span></span></div>
+      <div class="employees">${visible.length ? visible.map(employee => EmployeeCard(employee, selectedId)).join("") : `<div class="employees-empty">Сотрудники не найдены</div>`}</div>
+    </div>
   </section>`;
 }
 
 export function EmployeeCard(employee, selectedId) {
   return `<button class="employee-card ${employee.id === selectedId ? "is-selected" : ""} ${employee.risks ? "has-risk" : ""}" data-employee="${employee.id}">
-    <div class="employee-card__top"><span class="avatar">${employee.initials}</span><div class="employee-main"><strong>${employee.name}</strong><span>${employee.role}</span></div>${employee.risks ? Badge(`${employee.risks} риска`, "warning") : `<span class="ok-dot">✓</span>`}</div>
-    <div class="employee-card__meta"><span>${employee.sign ? "С правом подписи" : "Без права подписи"}</span><span>Активность: ${employee.last}</span></div>
-    <div class="employee-card__stats"><span><b>${employee.actions}</b> действий</span><span class="${employee.risks ? "risk-text" : ""}"><b>${employee.risks}</b> рисков</span></div>
+    <div class="employee-card__person"><span class="avatar">${employee.initials}</span><div class="employee-main"><strong>${employee.name}</strong><span>${employee.role}</span></div></div>
+    <span class="employee-access">${employee.sign ? "С правом подписи" : "Без права подписи"}</span>
+    <span class="employee-last">${employee.last}</span>
+    <strong class="employee-count">${employee.actions}</strong>
+    <span class="employee-risk">${employee.risks ? Badge(`${employee.risks} риска`, "warning") : `<span class="no-risk">Нет</span>`}</span>
+    <span class="employee-open">›</span>
   </button>`;
 }
 
@@ -49,7 +55,7 @@ export function EmployeeSummary(employee, visibleEvents, period) {
   const risks = visibleEvents.filter(event => event.suspicious).length;
   return `<section class="employee-summary">
     <div class="employee-profile"><span class="avatar avatar--large">${employee.initials}</span><div><div class="eyebrow">Выбранный сотрудник</div><h2>${employee.name}</h2><p>${employee.role} · ${employee.sign ? "с правом подписи" : "без права подписи"}</p></div></div>
-    <div class="summary-info"><div><span>Доступы</span><strong>${employee.rights.join(", ")}</strong></div><div><span>Лимит операций</span><strong>${employee.limit}</strong></div><div><span>${period}</span><strong>${visibleEvents.length} действий · ${risks} рисков</strong></div></div>
+    <div class="summary-info"><div><span>Доступы к продуктам</span><strong>${employee.rights.join(", ")}</strong></div><div><span>Лимиты на операции</span><strong>${employee.limit}</strong></div><div><span>${period}</span><strong>${visibleEvents.length} действий · ${risks} рисков</strong></div></div>
     <div class="quick-actions">${Button("Изменить права", "secondary", 'data-toast="Открыта настройка прав доступа"')}${Button("Управлять доступом", "primary", 'data-toast="Открыто управление доступом"')}</div>
   </section>`;
 }
@@ -60,10 +66,10 @@ export function FiltersPanel(state) {
   return `<section class="filters-shell">
     <div class="filters-mobile-head"><button class="filter-toggle" id="filter-toggle">Фильтры ${activeCount ? `<b>${activeCount}</b>` : ""}<span>${state.filtersOpen ? "⌃" : "⌄"}</span></button></div>
     <div class="filters ${state.filtersOpen ? "is-open" : ""}">
+      <label class="risk-filter ${state.onlyRisks ? "is-active" : ""}"><input type="checkbox" id="risk-filter" ${state.onlyRisks ? "checked" : ""}><span class="risk-filter__icon">!</span><span><b>Подозрительные действия</b><small>Быстрый фильтр</small></span><i>${state.onlyRisks ? "✓" : "2"}</i></label>
       <div class="periods">${["Сегодня", "Вчера", "Неделя", "Месяц"].map(period => `<button class="${state.period === period ? "is-active" : ""}" data-period="${period}">${period}</button>`).join("")}</div>
       <label class="select-wrap"><span>Тип события</span><select id="type-filter">${types.map(type => `<option ${state.type === type ? "selected" : ""}>${type}</option>`).join("")}</select></label>
       <label class="search-field search-field--events"><span>⌕</span><input id="event-search" value="${state.eventQuery}" placeholder="Поиск по действиям"></label>
-      <label class="switch-wrap"><input type="checkbox" id="risk-filter" ${state.onlyRisks ? "checked" : ""}><span class="switch"></span><b>Только подозрительные</b></label>
       ${activeCount ? `<button class="reset" id="reset-filters">Сбросить</button>` : ""}
     </div>
   </section>`;
@@ -84,15 +90,22 @@ export function ActionEventItem(event) {
   </button>`;
 }
 
-export function TimeActivityTab(events) {
+export function TimeActivityTab(events, period) {
   const suspicious = events.filter(event => event.suspicious).length;
-  const slots = [
-    { label: "09:00–12:00", value: 5, color: "brand" }, { label: "12:00–15:00", value: 3, color: "brand" },
-    { label: "15:00–18:00", value: 8, color: "brand" }, { label: "После 18:00", value: suspicious || 2, color: "warning" }
-  ];
-  return `<section class="activity-card"><div class="section-head"><div><h2>Активность по времени</h2><p>Распределение действий за выбранный период</p></div>${Badge(suspicious ? "Есть отклонения" : "Обычный ритм", suspicious ? "warning" : "success")}</div>
-    <div class="chart">${slots.map(slot => `<div class="bar-row"><span>${slot.label}</span><div class="bar-track"><i class="bar bar--${slot.color}" style="width:${slot.value * 10}%"></i></div><strong>${slot.value}</strong></div>`).join("")}</div>
-    <div class="activity-insight"><span>i</span><div><strong>Основная активность — с 15:00 до 18:00</strong><p>За пределами обычного времени найдено ${suspicious} событий, которые стоит проверить.</p></div></div>
+  const activityByPeriod = {
+    "Сегодня": [5, 3, 8, 2],
+    "Вчера": [2, 6, 4, 3],
+    "Неделя": [28, 37, 49, 9],
+    "Месяц": [104, 146, 187, 31]
+  };
+  const values = activityByPeriod[period] || activityByPeriod["Сегодня"];
+  const max = Math.max(...values);
+  const labels = ["09:00–12:00", "12:00–15:00", "15:00–18:00", "После 18:00"];
+  const slots = labels.map((label, index) => ({ label, value: values[index], color: index === 3 ? "warning" : "brand", width: Math.max(8, Math.round(values[index] / max * 100)) }));
+  const peak = slots.reduce((best, slot) => slot.value > best.value ? slot : best, slots[0]);
+  return `<section class="activity-card"><div class="section-head"><div><h2>Активность по времени</h2><p>${period} · распределение действий по времени</p></div>${Badge(suspicious ? "Есть отклонения" : "Обычный ритм", suspicious ? "warning" : "success")}</div>
+    <div class="chart" data-period-chart="${period}">${slots.map(slot => `<div class="bar-row"><span>${slot.label}</span><div class="bar-track"><i class="bar bar--${slot.color}" style="--bar-width:${slot.width}%"></i></div><strong>${slot.value}</strong></div>`).join("")}</div>
+    <div class="activity-insight"><span>i</span><div><strong>Пик активности: ${peak.label}</strong><p>За период «${period.toLowerCase()}» после 18:00 выполнено ${values[3]} действий. Подозрительных событий в текущем фильтре: ${suspicious}.</p></div></div>
   </section>`;
 }
 

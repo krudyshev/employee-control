@@ -21,18 +21,18 @@ function render(options = {}) {
   const visibleEvents = filteredEvents();
   const drawerEvent = events.find(item => item.id === state.drawerId);
   app.innerHTML = `<div class="layout">${Sidebar()}<button class="sidebar-backdrop" id="sidebar-backdrop" aria-label="Закрыть меню"></button><main>
-    <header class="topbar"><button class="mobile-menu" id="mobile-menu">☰</button><div class="topbar__right"><span class="status-pill"><i></i> Всё работает</span><button class="icon-button">?</button><span class="avatar avatar--user">МК</span></div></header>
+    <button class="mobile-menu" id="mobile-menu">☰</button>
     <div class="content">
       <section class="hero"><div><div class="eyebrow">Контроль доступов</div><h1>Действия сотрудников</h1><p>Смотрите историю действий распорядителей, проверяйте необычную активность и управляйте доступами.</p></div></section>
       ${Metrics()}${EmployeesList(state.employeeId, state.employeeQuery)}${EmployeeSummary(employee, visibleEvents, state.period)}
       <section class="history-section" id="history"><div class="history-head"><div><h2>История действий</h2><p>${employee.name} · ${visibleEvents.length} событий · ${state.period.toLowerCase()}</p></div>${Button("Скачать журнал", "secondary", 'id="download-log"')}</div>
         <div class="tabs"><button class="${state.tab === "feed" ? "is-active" : ""}" data-tab="feed">Лента действий</button><button class="${state.tab === "time" ? "is-active" : ""}" data-tab="time">Активность по времени</button></div>
-        ${FiltersPanel(state)}${state.tab === "feed" ? ActionFeed(visibleEvents) : TimeActivityTab(visibleEvents)}
+        ${FiltersPanel(state)}${state.tab === "feed" ? ActionFeed(visibleEvents) : TimeActivityTab(visibleEvents, state.period)}
       </section>
     </div>
   </main></div>${EventDetailsDrawer(drawerEvent, employee)}${state.confirmRestrict ? ConfirmDialog(employee) : ""}${state.toast ? `<div class="toast"><span>✓</span>${state.toast}</div>` : ""}`;
   bind();
-  if (options.scrollSelected) document.querySelector(".employee-card.is-selected")?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  if (options.scrollSelected) document.querySelector(".employee-card.is-selected")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   if (options.focusEmployeeSearch) { const input = document.querySelector("#employee-search"); input?.focus(); input?.setSelectionRange(input.value.length, input.value.length); }
   if (options.focusEventSearch) { const input = document.querySelector("#event-search"); input?.focus(); input?.setSelectionRange(input.value.length, input.value.length); }
 }
@@ -50,7 +50,6 @@ function resetFilters() {
 
 function bind() {
   document.querySelectorAll("[data-employee]").forEach(button => button.addEventListener("click", () => { state.employeeId = button.dataset.employee; state.drawerId = null; render({ scrollSelected: true }); }));
-  document.querySelectorAll("[data-scroll-employees]").forEach(button => button.addEventListener("click", () => document.querySelector(".employees")?.scrollBy({ left: Number(button.dataset.scrollEmployees) * 300, behavior: "smooth" })));
   document.querySelectorAll("[data-tab]").forEach(button => button.addEventListener("click", () => { state.tab = button.dataset.tab; render(); }));
   document.querySelectorAll("[data-period]").forEach(button => button.addEventListener("click", () => { state.period = button.dataset.period; render(); }));
   document.querySelectorAll("[data-event]").forEach(button => button.addEventListener("click", () => { state.drawerId = button.dataset.event; render(); }));
