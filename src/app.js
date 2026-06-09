@@ -1,5 +1,5 @@
-import { employees, events } from "./data.js";
-import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js";
+import { employees, events } from "./data.js?v=2";
+import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js?v=2";
 
 const app = document.querySelector("#app");
 const state = { employeeId: "anna", tab: "feed", period: "Сегодня", type: "Все типы", onlyRisks: false, eventQuery: "", employeeQuery: "", filtersOpen: false, drawerId: null, confirmRestrict: false, toast: "" };
