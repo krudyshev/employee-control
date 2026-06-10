@@ -1,12 +1,19 @@
-import { employees, events, loginHistory } from "./data.js?v=6";
-import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, LoginGeographyTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js?v=6";
+import { employees, events, loginHistory } from "./data.js?v=7";
+import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, LoginGeographyTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js?v=7";
 
 const app = document.querySelector("#app");
-const state = { employeeId: "anna", tab: "feed", period: "Сегодня", type: "Все типы", onlyRisks: false, eventQuery: "", employeeQuery: "", filtersOpen: false, drawerId: null, confirmRestrict: false, toast: "" };
+const state = { employeeId: "anna", tab: "feed", period: "Сегодня", type: "Все типы", onlyRisks: false, eventQuery: "", employeeQuery: "", filtersOpen: false, drawerId: null, confirmRestrict: false, reviewedRiskIds: [], toast: "" };
+
+function effectiveEvents() {
+  return events.map(event => {
+    const reviewed = event.suspicious && state.reviewedRiskIds.includes(event.id);
+    return { ...event, reviewed, suspicious: event.suspicious && !reviewed };
+  });
+}
 
 function filteredEvents() {
   const query = state.eventQuery.trim().toLowerCase();
-  return events.filter(event =>
+  return effectiveEvents().filter(event =>
     event.employeeId === state.employeeId &&
     (state.type === "Все типы" || event.type === state.type) &&
     (!state.onlyRisks || event.suspicious) &&
@@ -18,19 +25,21 @@ function filteredEvents() {
 
 function render(options = {}) {
   const employee = employees.find(item => item.id === state.employeeId);
+  const currentEvents = effectiveEvents();
   const visibleEvents = filteredEvents();
   const employeeLogins = loginHistory[state.employeeId] || [];
-  const drawerEvent = events.find(item => item.id === state.drawerId);
+  const drawerEvent = currentEvents.find(item => item.id === state.drawerId);
+  const riskCounts = Object.fromEntries(employees.map(item => [item.id, currentEvents.filter(event => event.employeeId === item.id && event.suspicious).length]));
   app.innerHTML = `<div class="layout">${Sidebar()}<button class="sidebar-backdrop" id="sidebar-backdrop" aria-label="Закрыть меню"></button><main>
     <button class="mobile-menu" id="mobile-menu">☰</button>
     <div class="content">
       <section class="hero"><h1>Действия сотрудников</h1></section>
-      ${Metrics()}${EmployeesList(state.employeeId, state.employeeQuery)}
+      ${Metrics(riskCounts)}${EmployeesList(state.employeeId, state.employeeQuery, riskCounts)}
       <section class="employee-workspace">
         ${EmployeeSummary(employee, visibleEvents, state.period)}
-        <section class="history-section" id="history"><div class="history-head"><div><h2>История действий</h2><p>${employee.name} · ${state.tab === "geography" ? `${employeeLogins.length} входа` : `${visibleEvents.length} событий · ${state.period.toLowerCase()}`}</p></div>${Button("Скачать журнал", "secondary", 'id="download-log"')}</div>
+        <section class="history-section" id="history"><div class="history-head"><div><h2>История действий</h2><p>${state.tab === "geography" ? `${employeeLogins.length} входа` : `${visibleEvents.length} событий · ${state.period.toLowerCase()}`}</p></div>${Button("Скачать журнал", "secondary", 'id="download-log"')}</div>
           <div class="tabs"><button class="${state.tab === "feed" ? "is-active" : ""}" data-tab="feed">Лента действий</button><button class="${state.tab === "time" ? "is-active" : ""}" data-tab="time">Активность по времени</button><button class="${state.tab === "geography" ? "is-active" : ""}" data-tab="geography">IP и география${employeeLogins.some(login => login.suspicious) ? `<b>!</b>` : ""}</button></div>
-          ${state.tab === "geography" ? LoginGeographyTab(employeeLogins) : `${FiltersPanel(state)}${state.tab === "feed" ? ActionFeed(visibleEvents) : TimeActivityTab(visibleEvents, state.period)}`}
+          ${state.tab === "geography" ? LoginGeographyTab(employeeLogins) : `${FiltersPanel(state, riskCounts[state.employeeId])}${state.tab === "feed" ? ActionFeed(visibleEvents) : TimeActivityTab(visibleEvents, state.period)}`}
         </section>
       </section>
     </div>
@@ -57,6 +66,12 @@ function bind() {
   document.querySelectorAll("[data-tab]").forEach(button => button.addEventListener("click", () => { state.tab = button.dataset.tab; render(); }));
   document.querySelectorAll("[data-period]").forEach(button => button.addEventListener("click", () => { state.period = button.dataset.period; render(); }));
   document.querySelectorAll("[data-event]").forEach(button => button.addEventListener("click", () => { state.drawerId = button.dataset.event; render(); }));
+  document.querySelectorAll("[data-verify-risk]").forEach(button => button.addEventListener("click", event => {
+    event.stopPropagation();
+    if (!state.reviewedRiskIds.includes(button.dataset.verifyRisk)) state.reviewedRiskIds.push(button.dataset.verifyRisk);
+    if (state.drawerId === button.dataset.verifyRisk) state.drawerId = null;
+    showToast("Событие помечено проверенным");
+  }));
   document.querySelectorAll("[data-toast]").forEach(button => button.addEventListener("click", () => showToast(button.dataset.toast)));
   document.querySelector("#employee-search")?.addEventListener("input", event => { state.employeeQuery = event.target.value; render({ focusEmployeeSearch: true }); });
   document.querySelector("#event-search")?.addEventListener("input", event => { state.eventQuery = event.target.value; render({ focusEventSearch: true }); });

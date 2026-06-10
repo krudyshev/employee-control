@@ -1,4 +1,4 @@
-import { employees, typeMeta } from "./data.js?v=6";
+import { employees, typeMeta } from "./data.js?v=7";
 
 export const Badge = (text, tone = "neutral") => `<span class="badge badge--${tone}">${text}</span>`;
 export const Button = (text, variant = "secondary", attrs = "") => `<button class="button button--${variant}" ${attrs}>${text}</button>`;
@@ -18,18 +18,18 @@ export function Sidebar() {
   </aside>`;
 }
 
-export function Metrics() {
-  const employeesWithRisks = employees.filter(employee => employee.risks > 0);
-  const totalRisks = employeesWithRisks.reduce((total, employee) => total + employee.risks, 0);
+export function Metrics(riskCounts) {
+  const employeesWithRisks = employees.filter(employee => riskCounts[employee.id] > 0);
+  const totalRisks = employeesWithRisks.reduce((total, employee) => total + riskCounts[employee.id], 0);
   if (!totalRisks) return "";
   return `<section class="risk-overview">
     <span class="risk-overview__icon">!</span>
     <div class="risk-overview__body"><div><span>Подозрительные операции</span><strong>${totalRisks}</strong></div><p>Проверьте отклонения и при необходимости ограничьте доступ сотрудника.</p></div>
-    <div class="risk-overview__people">${employeesWithRisks.map(employee => `<button data-risk-employee="${employee.id}"><span class="avatar">${employee.initials}</span><span><strong>${employee.name}</strong><small>${employee.risks} ${employee.risks === 1 ? "операция" : "операции"}</small></span><b>›</b></button>`).join("")}</div>
+    <div class="risk-overview__people">${employeesWithRisks.map(employee => `<button data-risk-employee="${employee.id}"><span class="avatar">${employee.initials}</span><span><strong>${employee.name}</strong><small>${riskCounts[employee.id]} ${riskCounts[employee.id] === 1 ? "операция" : "операции"}</small></span><b>›</b></button>`).join("")}</div>
   </section>`;
 }
 
-export function EmployeesList(selectedId, query = "") {
+export function EmployeesList(selectedId, query = "", riskCounts = {}) {
   const normalized = query.trim().toLowerCase();
   const visible = employees.filter(employee => `${employee.name} ${employee.role}`.toLowerCase().includes(normalized));
   return `<section class="section employees-section">
@@ -38,18 +38,18 @@ export function EmployeesList(selectedId, query = "") {
     </div>
     <div class="employee-table">
       <div class="employee-table__head"><span>Сотрудник</span><span>Доступ</span><span>Последняя активность</span><span>Действия</span><span>Риски</span><span></span></div>
-      <div class="employees">${visible.length ? visible.map(employee => EmployeeCard(employee, selectedId)).join("") : `<div class="employees-empty">Сотрудники не найдены</div>`}</div>
+      <div class="employees">${visible.length ? visible.map(employee => EmployeeCard(employee, selectedId, riskCounts[employee.id] || 0)).join("") : `<div class="employees-empty">Сотрудники не найдены</div>`}</div>
     </div>
   </section>`;
 }
 
-export function EmployeeCard(employee, selectedId) {
-  return `<button class="employee-card ${employee.id === selectedId ? "is-selected" : ""} ${employee.risks ? "has-risk" : ""}" data-employee="${employee.id}">
+export function EmployeeCard(employee, selectedId, risks) {
+  return `<button class="employee-card ${employee.id === selectedId ? "is-selected" : ""} ${risks ? "has-risk" : ""}" data-employee="${employee.id}">
     <div class="employee-card__person"><span class="avatar">${employee.initials}</span><div class="employee-main"><strong>${employee.name}</strong><span>${employee.role}</span></div></div>
     <span class="employee-access">${employee.sign ? "С правом подписи" : "Без права подписи"}</span>
     <span class="employee-last">${employee.last}</span>
     <strong class="employee-count">${employee.actions}</strong>
-    <span class="employee-risk">${employee.risks ? Badge(`${employee.risks} риска`, "warning") : `<span class="no-risk">Нет</span>`}</span>
+    <span class="employee-risk">${risks ? Badge(`${risks} риска`, "warning") : `<span class="no-risk">Нет</span>`}</span>
     <span class="employee-open">›</span>
   </button>`;
 }
@@ -63,10 +63,9 @@ export function EmployeeSummary(employee, visibleEvents, period) {
   </section>`;
 }
 
-export function FiltersPanel(state) {
+export function FiltersPanel(state, employeeRisks = 0) {
   const types = ["Все типы", "Просмотры", "Документы", "Платежи", "Экспорт", "Входы", "Настройки"];
   const activeCount = Number(state.type !== "Все типы") + Number(state.onlyRisks) + Number(state.period !== "Сегодня") + Number(Boolean(state.eventQuery));
-  const employeeRisks = employees.find(employee => employee.id === state.employeeId)?.risks || 0;
   return `<section class="filters-shell">
     <div class="filters-mobile-head"><button class="filter-toggle" id="filter-toggle">Фильтры ${activeCount ? `<b>${activeCount}</b>` : ""}<span>${state.filtersOpen ? "⌃" : "⌄"}</span></button></div>
     <div class="filters ${state.filtersOpen ? "is-open" : ""}">
@@ -87,9 +86,9 @@ export function ActionFeed(events) {
 
 export function ActionEventItem(event) {
   const meta = typeMeta[event.type] || typeMeta["Просмотры"];
-  return `<button class="event ${event.suspicious ? "is-suspicious" : ""}" data-event="${event.id}">
+  return `<button class="event ${event.suspicious ? "is-suspicious" : ""} ${event.reviewed ? "is-reviewed" : ""}" data-event="${event.id}">
     <span class="event__icon event__icon--${meta.tone}">${meta.icon}</span>
-    <div class="event__body"><div class="event__title">${event.title}${event.suspicious ? Badge("Необычная активность", "warning") : ""}</div><p>${event.description}</p><div class="event__meta">${Badge(event.type)}<span>${event.result}</span></div></div>
+    <div class="event__body"><div class="event__title">${event.title}${event.suspicious ? Badge("Необычная активность", "warning") : ""}${event.reviewed ? Badge("Проверено", "success") : ""}</div><p>${event.description}</p><div class="event__meta">${Badge(event.type)}<span>${event.result}</span>${event.suspicious ? `<span class="event__verify" data-verify-risk="${event.id}">✓ Пометить проверенным</span>` : ""}</div></div>
     <div class="event__time"><strong>${event.time}</strong><span>Подробнее ›</span></div>
   </button>`;
 }
@@ -166,7 +165,7 @@ export function EventDetailsDrawer(event, employee) {
     <div class="drawer__head"><div><span class="eyebrow">Детали события</span><h2>${event.title}</h2></div><button class="icon-button" id="drawer-close">×</button></div>
     ${event.suspicious ? `<div class="risk-banner"><span>!</span><div><strong>Событие требует внимания</strong><p>${event.riskReason}</p></div></div>` : ""}
     <dl class="details"><div><dt>Сотрудник</dt><dd>${employee.name}</dd></div><div><dt>Дата и время</dt><dd>${event.date}, ${event.time}</dd></div><div><dt>Тип события</dt><dd>${event.type}</dd></div><div><dt>Результат</dt><dd>${event.result}</dd></div><div><dt>Устройство</dt><dd>${event.device}</dd></div><div><dt>Примерный город</dt><dd>${event.city}</dd></div><div><dt>IP-адрес</dt><dd>${event.ip}</dd></div><div><dt>Раздел банка</dt><dd>${event.section}</dd></div><div><dt>Связанный счёт</dt><dd>${event.account}</dd></div></dl>
-    <div class="drawer__actions">${event.suspicious ? Button("Ограничить доступ", "danger", 'id="request-restrict"') : ""}${Button("Изменить права", "secondary", 'data-toast="Открыта настройка прав доступа"')}${Button("Закрыть", "ghost", 'id="drawer-close-bottom"')}</div>
+    <div class="drawer__actions">${event.suspicious ? Button("Пометить проверенным", "secondary", `data-verify-risk="${event.id}"`) : ""}${event.suspicious ? Button("Ограничить доступ", "danger", 'id="request-restrict"') : ""}${Button("Изменить права", "secondary", 'data-toast="Открыта настройка прав доступа"')}${Button("Закрыть", "ghost", 'id="drawer-close-bottom"')}</div>
   </aside>`;
 }
 
