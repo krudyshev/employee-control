@@ -49,6 +49,28 @@ export const events = employees.flatMap((employee, employeeIndex) => {
   }));
 });
 
+export const loginHistory = {
+  anna: [
+    { date: "Сегодня", time: "17:25", ip: "95.79.42.18", city: "Екатеринбург", country: "Россия", device: "Chrome · Windows 11" },
+    { date: "Сегодня", time: "09:04", ip: "95.79.42.18", city: "Екатеринбург", country: "Россия", device: "Chrome · Windows 11" },
+    { date: "Вчера", time: "10:12", ip: "95.79.40.91", city: "Екатеринбург", country: "Россия", device: "Chrome · Windows 11" }
+  ],
+  dmitry: [
+    { date: "Сегодня", time: "22:14", ip: "185.220.101.17", city: "Берлин", country: "Германия", device: "Chrome · Windows 11", suspicious: true, riskReason: "Вход из Берлина через 18 минут после входа из Москвы" },
+    { date: "Сегодня", time: "21:56", ip: "178.176.82.44", city: "Москва", country: "Россия", device: "Safari · macOS", suspicious: true, riskReason: "Следующий вход выполнен из другой страны через 18 минут" },
+    { date: "Вчера", time: "12:40", ip: "178.176.82.44", city: "Москва", country: "Россия", device: "Safari · macOS" },
+    { date: "3 июня", time: "09:18", ip: "178.176.80.12", city: "Москва", country: "Россия", device: "Safari · macOS" }
+  ],
+  elena: [
+    { date: "3 июня", time: "11:32", ip: "92.255.198.33", city: "Екатеринбург", country: "Россия", device: "Chrome · Windows 11" },
+    { date: "2 июня", time: "09:10", ip: "92.255.198.33", city: "Екатеринбург", country: "Россия", device: "Chrome · Windows 11" }
+  ],
+  alexey: [
+    { date: "Сегодня", time: "15:08", ip: "31.173.86.52", city: "Екатеринбург", country: "Россия", device: "Edge · Windows 10" },
+    { date: "Вчера", time: "08:55", ip: "31.173.86.52", city: "Екатеринбург", country: "Россия", device: "Edge · Windows 10" }
+  ]
+};
+
 export const typeMeta = {
   "Просмотры": { icon: "◉", tone: "brand" },
   "Документы": { icon: "▤", tone: "neutral" },

@@ -1,5 +1,5 @@
-import { employees, events } from "./data.js?v=3";
-import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js?v=3";
+import { employees, events, loginHistory } from "./data.js?v=4";
+import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, LoginGeographyTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js?v=4";
 
 const app = document.querySelector("#app");
 const state = { employeeId: "anna", tab: "feed", period: "Сегодня", type: "Все типы", onlyRisks: false, eventQuery: "", employeeQuery: "", filtersOpen: false, drawerId: null, confirmRestrict: false, toast: "" };
@@ -19,15 +19,16 @@ function filteredEvents() {
 function render(options = {}) {
   const employee = employees.find(item => item.id === state.employeeId);
   const visibleEvents = filteredEvents();
+  const employeeLogins = loginHistory[state.employeeId] || [];
   const drawerEvent = events.find(item => item.id === state.drawerId);
   app.innerHTML = `<div class="layout">${Sidebar()}<button class="sidebar-backdrop" id="sidebar-backdrop" aria-label="Закрыть меню"></button><main>
     <button class="mobile-menu" id="mobile-menu">☰</button>
     <div class="content">
       <section class="hero"><h1>Действия сотрудников</h1></section>
       ${Metrics()}${EmployeesList(state.employeeId, state.employeeQuery)}${EmployeeSummary(employee, visibleEvents, state.period)}
-      <section class="history-section" id="history"><div class="history-head"><div><h2>История действий</h2><p>${employee.name} · ${visibleEvents.length} событий · ${state.period.toLowerCase()}</p></div>${Button("Скачать журнал", "secondary", 'id="download-log"')}</div>
-        <div class="tabs"><button class="${state.tab === "feed" ? "is-active" : ""}" data-tab="feed">Лента действий</button><button class="${state.tab === "time" ? "is-active" : ""}" data-tab="time">Активность по времени</button></div>
-        ${FiltersPanel(state)}${state.tab === "feed" ? ActionFeed(visibleEvents) : TimeActivityTab(visibleEvents, state.period)}
+      <section class="history-section" id="history"><div class="history-head"><div><h2>История действий</h2><p>${employee.name} · ${state.tab === "geography" ? `${employeeLogins.length} входа` : `${visibleEvents.length} событий · ${state.period.toLowerCase()}`}</p></div>${Button("Скачать журнал", "secondary", 'id="download-log"')}</div>
+        <div class="tabs"><button class="${state.tab === "feed" ? "is-active" : ""}" data-tab="feed">Лента действий</button><button class="${state.tab === "time" ? "is-active" : ""}" data-tab="time">Активность по времени</button><button class="${state.tab === "geography" ? "is-active" : ""}" data-tab="geography">IP и география${employeeLogins.some(login => login.suspicious) ? `<b>!</b>` : ""}</button></div>
+        ${state.tab === "geography" ? LoginGeographyTab(employeeLogins) : `${FiltersPanel(state)}${state.tab === "feed" ? ActionFeed(visibleEvents) : TimeActivityTab(visibleEvents, state.period)}`}
       </section>
     </div>
   </main></div>${EventDetailsDrawer(drawerEvent, employee)}${state.confirmRestrict ? ConfirmDialog(employee) : ""}${state.toast ? `<div class="toast"><span>✓</span>${state.toast}</div>` : ""}`;

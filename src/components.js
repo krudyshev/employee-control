@@ -1,4 +1,4 @@
-import { employees, typeMeta } from "./data.js?v=3";
+import { employees, typeMeta } from "./data.js?v=4";
 
 export const Badge = (text, tone = "neutral") => `<span class="badge badge--${tone}">${text}</span>`;
 export const Button = (text, variant = "secondary", attrs = "") => `<button class="button button--${variant}" ${attrs}>${text}</button>`;
@@ -111,6 +111,28 @@ export function TimeActivityTab(events, period) {
     <div class="chart" data-period-chart="${period}">${slots.map(slot => `<div class="bar-row"><span>${slot.label}</span><div class="bar-track"><i class="bar bar--${slot.color}" style="--bar-width:${slot.width}%"></i></div><strong>${slot.value}</strong></div>`).join("")}</div>
     <div class="activity-insight"><span>i</span><div><strong>Пик активности: ${peak.label}</strong><p>За период «${period.toLowerCase()}» после 18:00 выполнено ${values[3]} действий. Подозрительных событий в текущем фильтре: ${suspicious}.</p></div></div>
   </section>`;
+}
+
+export function LoginGeographyTab(logins) {
+  const suspicious = logins.filter(login => login.suspicious).length;
+  const countries = [...new Set(logins.map(login => login.country))];
+  return `<section class="login-geography">
+    <div class="login-geography__summary"><div><span class="login-geography__icon">◎</span><div><h2>География входов</h2><p>${countries.length} ${countries.length === 1 ? "страна" : "страны"} · ${logins.length} входа</p></div></div>${suspicious ? Badge("Резкая смена страны", "warning") : Badge("Обычная география", "success")}</div>
+    ${suspicious ? `<div class="travel-alert"><span>!</span><div><strong>Невозможное перемещение</strong><p>Зафиксированы входы из разных стран с интервалом, недостаточным для реального перемещения.</p></div></div>` : ""}
+    <div class="login-table"><div class="login-table__head"><span>Дата и время</span><span>IP-адрес</span><span>Город и страна</span><span>Устройство</span><span>Оценка</span></div>
+      <div>${logins.map(LoginRow).join("")}</div>
+    </div>
+  </section>`;
+}
+
+function LoginRow(login) {
+  return `<article class="login-row ${login.suspicious ? "is-suspicious" : ""}">
+    <div><strong>${login.time}</strong><span>${login.date}</span></div>
+    <code>${login.ip}</code>
+    <div><strong>${login.city}</strong><span>${login.country}</span></div>
+    <span>${login.device}</span>
+    <div>${login.suspicious ? `${Badge("Подозрительный вход", "warning")}<small>${login.riskReason}</small>` : Badge("Без отклонений", "success")}</div>
+  </article>`;
 }
 
 export function EmptyState() {
