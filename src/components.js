@@ -1,4 +1,4 @@
-import { employees, typeMeta } from "./data.js?v=7";
+import { employees, typeMeta } from "./data.js?v=8";
 
 export const Badge = (text, tone = "neutral") => `<span class="badge badge--${tone}">${text}</span>`;
 export const Button = (text, variant = "secondary", attrs = "") => `<button class="button button--${variant}" ${attrs}>${text}</button>`;
@@ -70,8 +70,8 @@ export function FiltersPanel(state, employeeRisks = 0) {
     <div class="filters-mobile-head"><button class="filter-toggle" id="filter-toggle">Фильтры ${activeCount ? `<b>${activeCount}</b>` : ""}<span>${state.filtersOpen ? "⌃" : "⌄"}</span></button></div>
     <div class="filters ${state.filtersOpen ? "is-open" : ""}">
       <label class="risk-filter ${state.onlyRisks ? "is-active" : ""}"><input type="checkbox" id="risk-filter" ${state.onlyRisks ? "checked" : ""}><span class="risk-filter__icon">!</span><span><b>Подозрительные действия</b><small>Быстрый фильтр</small></span><i>${state.onlyRisks ? "✓" : employeeRisks}</i></label>
-      <div class="periods">${["Сегодня", "Вчера", "Неделя", "Месяц"].map(period => `<button class="${state.period === period ? "is-active" : ""}" data-period="${period}">${period}</button>`).join("")}</div>
       <label class="select-wrap"><span>Тип события</span><select id="type-filter">${types.map(type => `<option ${state.type === type ? "selected" : ""}>${type}</option>`).join("")}</select></label>
+      <div class="periods">${["Сегодня", "Вчера", "Неделя", "Месяц"].map(period => `<button class="${state.period === period ? "is-active" : ""}" data-period="${period}">${period}</button>`).join("")}</div>
       <label class="search-field search-field--events"><span>⌕</span><input id="event-search" value="${state.eventQuery}" placeholder="Поиск по действиям"></label>
       ${activeCount ? `<button class="reset" id="reset-filters">Сбросить</button>` : ""}
     </div>
