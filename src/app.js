@@ -1,5 +1,5 @@
-import { employees, events, loginHistory } from "./data.js?v=4";
-import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, LoginGeographyTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js?v=4";
+import { employees, events, loginHistory } from "./data.js?v=5";
+import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, LoginGeographyTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js?v=5";
 
 const app = document.querySelector("#app");
 const state = { employeeId: "anna", tab: "feed", period: "Сегодня", type: "Все типы", onlyRisks: false, eventQuery: "", employeeQuery: "", filtersOpen: false, drawerId: null, confirmRestrict: false, toast: "" };
@@ -25,10 +25,14 @@ function render(options = {}) {
     <button class="mobile-menu" id="mobile-menu">☰</button>
     <div class="content">
       <section class="hero"><h1>Действия сотрудников</h1></section>
-      ${Metrics()}${EmployeesList(state.employeeId, state.employeeQuery)}${EmployeeSummary(employee, visibleEvents, state.period)}
-      <section class="history-section" id="history"><div class="history-head"><div><h2>История действий</h2><p>${employee.name} · ${state.tab === "geography" ? `${employeeLogins.length} входа` : `${visibleEvents.length} событий · ${state.period.toLowerCase()}`}</p></div>${Button("Скачать журнал", "secondary", 'id="download-log"')}</div>
-        <div class="tabs"><button class="${state.tab === "feed" ? "is-active" : ""}" data-tab="feed">Лента действий</button><button class="${state.tab === "time" ? "is-active" : ""}" data-tab="time">Активность по времени</button><button class="${state.tab === "geography" ? "is-active" : ""}" data-tab="geography">IP и география${employeeLogins.some(login => login.suspicious) ? `<b>!</b>` : ""}</button></div>
-        ${state.tab === "geography" ? LoginGeographyTab(employeeLogins) : `${FiltersPanel(state)}${state.tab === "feed" ? ActionFeed(visibleEvents) : TimeActivityTab(visibleEvents, state.period)}`}
+      ${Metrics()}${EmployeesList(state.employeeId, state.employeeQuery)}
+      <div class="workspace-label"><span>Рабочая область сотрудника</span><i></i></div>
+      <section class="employee-workspace">
+        ${EmployeeSummary(employee, visibleEvents, state.period)}
+        <section class="history-section" id="history"><div class="history-head"><div><h2>История действий</h2><p>${employee.name} · ${state.tab === "geography" ? `${employeeLogins.length} входа` : `${visibleEvents.length} событий · ${state.period.toLowerCase()}`}</p></div>${Button("Скачать журнал", "secondary", 'id="download-log"')}</div>
+          <div class="tabs"><button class="${state.tab === "feed" ? "is-active" : ""}" data-tab="feed">Лента действий</button><button class="${state.tab === "time" ? "is-active" : ""}" data-tab="time">Активность по времени</button><button class="${state.tab === "geography" ? "is-active" : ""}" data-tab="geography">IP и география${employeeLogins.some(login => login.suspicious) ? `<b>!</b>` : ""}</button></div>
+          ${state.tab === "geography" ? LoginGeographyTab(employeeLogins) : `${FiltersPanel(state)}${state.tab === "feed" ? ActionFeed(visibleEvents) : TimeActivityTab(visibleEvents, state.period)}`}
+        </section>
       </section>
     </div>
   </main></div>${EventDetailsDrawer(drawerEvent, employee)}${state.confirmRestrict ? ConfirmDialog(employee) : ""}${state.toast ? `<div class="toast"><span>✓</span>${state.toast}</div>` : ""}`;

@@ -1,4 +1,4 @@
-import { employees, typeMeta } from "./data.js?v=4";
+import { employees, typeMeta } from "./data.js?v=5";
 
 export const Badge = (text, tone = "neutral") => `<span class="badge badge--${tone}">${text}</span>`;
 export const Button = (text, variant = "secondary", attrs = "") => `<button class="button button--${variant}" ${attrs}>${text}</button>`;

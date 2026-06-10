@@ -68,8 +68,9 @@ main { position: relative; grid-column: 2; min-width: 0; }
 .risk-overview__people button small { color: #8a6200; font-size: 10px; }
 .risk-overview__people button b { color: #8a6200; font-size: 18px; font-weight: 400; }
 
-.section, .employee-summary, .history-section, .activity-card { border: 1px solid var(--bg-neutral-2); border-radius: var(--rounding-5x); background: white; }
+.section, .activity-card { border: 1px solid var(--bg-neutral-2); border-radius: var(--rounding-5x); background: white; }
 .section { padding: var(--spacing-6x); margin-bottom: var(--spacing-6x); }
+.employees-section { margin-bottom: var(--spacing-10x); }
 .section-head, .history-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--spacing-4x); }
 .section-head p, .history-head p { margin-top: 2px; color: var(--primitive-secondary); font-size: 12px; }
 .counter { padding: var(--spacing-1-5x) var(--spacing-3x); border-radius: var(--rounding-8x); background: var(--bg-neutral-1); color: var(--primitive-secondary); font-size: 12px; }
@@ -109,7 +110,10 @@ main { position: relative; grid-column: 2; min-width: 0; }
 .badge--success { background: var(--bg-success-1); color: #367965; }
 .badge--brand { background: var(--bg-brand-1); color: #6242ae; }
 
-.employee-summary { display: grid; grid-template-columns: minmax(240px, .8fr) 1.7fr auto; align-items: center; gap: var(--spacing-6x); padding: var(--spacing-6x); margin-bottom: var(--spacing-6x); background: linear-gradient(100deg, white 65%, var(--bg-brand-1)); }
+.workspace-label { display: flex; align-items: center; gap: var(--spacing-3x); margin: 0 0 var(--spacing-3x); color: var(--primitive-secondary); font-size: 10px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; }
+.workspace-label i { flex: 1; height: 1px; background: var(--bg-neutral-3); }
+.employee-workspace { overflow: hidden; border: 1px solid var(--bg-neutral-3); border-radius: var(--rounding-5x); background: white; box-shadow: 0 12px 36px rgba(25,25,25,.05); }
+.employee-summary { display: grid; grid-template-columns: minmax(240px, .8fr) 1.7fr auto; align-items: center; gap: var(--spacing-6x); padding: var(--spacing-6x); border-bottom: 1px solid var(--bg-brand-2); background: linear-gradient(100deg, white 55%, var(--bg-brand-1)); }
 .employee-profile { display: flex; align-items: center; gap: var(--spacing-3x); }
 .employee-profile h2 { font-size: 18px; }
 .employee-profile p { color: var(--primitive-secondary); font-size: 12px; }
@@ -119,7 +123,7 @@ main { position: relative; grid-column: 2; min-width: 0; }
 .summary-info strong { font-size: 12px; font-weight: 500; }
 .quick-actions { display: flex; gap: var(--spacing-2x); }
 
-.history-section { overflow: hidden; }
+.history-section { overflow: hidden; background: white; }
 .history-head { align-items: center; padding: var(--spacing-6x) var(--spacing-6x) var(--spacing-3x); }
 .tabs { display: flex; gap: var(--spacing-6x); padding: 0 var(--spacing-6x); border-bottom: 1px solid var(--bg-neutral-2); }
 .tabs { scrollbar-width: none; }
