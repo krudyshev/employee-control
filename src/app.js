@@ -1,5 +1,5 @@
-import { employees, events, loginHistory } from "./data.js?v=5";
-import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, LoginGeographyTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js?v=5";
+import { employees, events, loginHistory } from "./data.js?v=6";
+import { Sidebar, Metrics, EmployeesList, EmployeeSummary, FiltersPanel, ActionFeed, TimeActivityTab, LoginGeographyTab, EventDetailsDrawer, ConfirmDialog, Button } from "./components.js?v=6";
 
 const app = document.querySelector("#app");
 const state = { employeeId: "anna", tab: "feed", period: "Сегодня", type: "Все типы", onlyRisks: false, eventQuery: "", employeeQuery: "", filtersOpen: false, drawerId: null, confirmRestrict: false, toast: "" };
@@ -26,7 +26,6 @@ function render(options = {}) {
     <div class="content">
       <section class="hero"><h1>Действия сотрудников</h1></section>
       ${Metrics()}${EmployeesList(state.employeeId, state.employeeQuery)}
-      <div class="workspace-label"><span>Рабочая область сотрудника</span><i></i></div>
       <section class="employee-workspace">
         ${EmployeeSummary(employee, visibleEvents, state.period)}
         <section class="history-section" id="history"><div class="history-head"><div><h2>История действий</h2><p>${employee.name} · ${state.tab === "geography" ? `${employeeLogins.length} входа` : `${visibleEvents.length} событий · ${state.period.toLowerCase()}`}</p></div>${Button("Скачать журнал", "secondary", 'id="download-log"')}</div>

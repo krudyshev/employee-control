@@ -1,4 +1,4 @@
-import { employees, typeMeta } from "./data.js?v=5";
+import { employees, typeMeta } from "./data.js?v=6";
 
 export const Badge = (text, tone = "neutral") => `<span class="badge badge--${tone}">${text}</span>`;
 export const Button = (text, variant = "secondary", attrs = "") => `<button class="button button--${variant}" ${attrs}>${text}</button>`;
@@ -102,15 +102,36 @@ export function TimeActivityTab(events, period) {
     "Неделя": [28, 37, 49, 9],
     "Месяц": [104, 146, 187, 31]
   };
+  const compositionByPeriod = {
+    "Сегодня": [["Выписки", 7, "brand"], ["Платежи", 5, "success"], ["Документы", 4, "warning"], ["Прочее", 2, "neutral"]],
+    "Вчера": [["Выписки", 3, "brand"], ["Платежи", 7, "success"], ["Документы", 2, "warning"], ["Прочее", 3, "neutral"]],
+    "Неделя": [["Выписки", 46, "brand"], ["Платежи", 31, "success"], ["Документы", 28, "warning"], ["Прочее", 18, "neutral"]],
+    "Месяц": [["Выписки", 142, "brand"], ["Платежи", 96, "success"], ["Документы", 131, "warning"], ["Прочее", 99, "neutral"]]
+  };
   const values = activityByPeriod[period] || activityByPeriod["Сегодня"];
+  const composition = compositionByPeriod[period] || compositionByPeriod["Сегодня"];
+  const compositionTotal = composition.reduce((total, item) => total + item[1], 0);
+  let offset = 0;
+  const segments = composition.map(item => {
+    const start = offset;
+    offset += item[1] / compositionTotal * 100;
+    return `${DonutColor(item[2])} ${start.toFixed(1)}% ${offset.toFixed(1)}%`;
+  }).join(", ");
   const max = Math.max(...values);
   const labels = ["09:00–12:00", "12:00–15:00", "15:00–18:00", "После 18:00"];
   const slots = labels.map((label, index) => ({ label, value: values[index], color: index === 3 ? "warning" : "brand", width: Math.max(8, Math.round(values[index] / max * 100)) }));
   const peak = slots.reduce((best, slot) => slot.value > best.value ? slot : best, slots[0]);
-  return `<section class="activity-card"><div class="section-head"><div><h2>Активность по времени</h2><p>${period} · распределение действий по времени</p></div>${Badge(suspicious ? "Есть отклонения" : "Обычный ритм", suspicious ? "warning" : "success")}</div>
-    <div class="chart" data-period-chart="${period}">${slots.map(slot => `<div class="bar-row"><span>${slot.label}</span><div class="bar-track"><i class="bar bar--${slot.color}" style="--bar-width:${slot.width}%"></i></div><strong>${slot.value}</strong></div>`).join("")}</div>
+  return `<section class="activity-card"><div class="section-head"><div><h2>Активность сотрудника</h2><p>${period} · время и структура действий</p></div>${Badge(suspicious ? "Есть отклонения" : "Обычный ритм", suspicious ? "warning" : "success")}</div>
+    <div class="activity-analytics">
+      <div class="time-chart"><h3>По времени</h3><div class="chart" data-period-chart="${period}">${slots.map(slot => `<div class="bar-row"><span>${slot.label}</span><div class="bar-track"><i class="bar bar--${slot.color}" style="--bar-width:${slot.width}%"></i></div><strong>${slot.value}</strong></div>`).join("")}</div></div>
+      <div class="composition-chart" data-period-composition="${period}"><div><h3>Чем занимался</h3><p>Распределение действий</p></div><div class="composition-chart__body"><div class="donut" style="--donut:${segments}"><span><strong>${compositionTotal}</strong><small>действий</small></span></div><div class="donut-legend">${composition.map(item => `<div><i class="donut-dot donut-dot--${item[2]}"></i><span>${item[0]}</span><strong>${item[1]}</strong><small>${Math.round(item[1] / compositionTotal * 100)}%</small></div>`).join("")}</div></div></div>
+    </div>
     <div class="activity-insight"><span>i</span><div><strong>Пик активности: ${peak.label}</strong><p>За период «${period.toLowerCase()}» после 18:00 выполнено ${values[3]} действий. Подозрительных событий в текущем фильтре: ${suspicious}.</p></div></div>
   </section>`;
+}
+
+function DonutColor(tone) {
+  return { brand: "var(--bg-brand)", success: "var(--bg-success)", warning: "var(--bg-warning)", neutral: "var(--bg-neutral-4)" }[tone];
 }
 
 export function LoginGeographyTab(logins) {
